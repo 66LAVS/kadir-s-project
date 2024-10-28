@@ -1,7 +1,6 @@
 import PyPDF2
 import sqlite3
 
-
 def extract_text_from_pdf(pdf_file_path, output_file_path):
     """
   Извлекает текст из PDF-файла и сохраняет его в текстовый файл.
