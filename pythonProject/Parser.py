@@ -114,19 +114,19 @@ def create_database(db_name):
     conn.close()
 
 
-def populate_database(db_name, file_path):
+def populate_database(db_name, file_path, file_number):
     """
     Заполняет базу данных данными из текстового файла.
 
     Args:
       db_name: Имя базы данных.
       file_path: Путь к текстовому файлу.
+      file_number: Уникальный номер для файла.
     """
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
 
     parts = split_text_by_udk(file_path)
-    file_number = int(file_path.split('/')[-1].split('extracted_text')[0])  # Получение номера файла
 
     for z, part in enumerate(parts):
         udk = part.split('\n')[0].strip()  # Получение УДК из первой строки
@@ -148,26 +148,42 @@ def populate_database(db_name, file_path):
     conn.close()
 
 
-n = 2  # Число файлов в папке Parsing units
-i = 1
-while i <= n:  # Создание файлов в папку Parsing units text через функцию
+def process_pdfs_in_folder(pdf_folder, output_folder):
+    """
+    Обрабатывает все PDF-файлы в указанной папке, извлекает текст и заполняет базу данных.
 
-    pdf_file_path = fr'Parsing units/{i}.pdf'
-    output_file_path = fr'parsing units text/{i}extracted_text.txt'  # Замените на имя желаемого выходного файла
-    extract_text_from_pdf(pdf_file_path, output_file_path)
+    Args:
+      pdf_folder: Папка, содержащая PDF-файлы.
+      output_folder: Папка для сохранения извлеченных текстовых файлов.
+    """
+    # Получаем список всех файлов с расширением .pdf в указанной папке
+    pdf_files = [f for f in os.listdir(pdf_folder) if f.lower().endswith('.pdf')]
 
-    file_path = fr'parsing units text/{i}extracted_text.txt'
+    for i, pdf_file in enumerate(pdf_files, start=1):  # Используем enumerate для получения индекса
+        pdf_file_path = os.path.join(pdf_folder, pdf_file)
 
-    # Проверим, что текст был извлечен
-    if os.path.exists(file_path):
-        print(f"Текст из файла {pdf_file_path} успешно извлечен в {output_file_path}")
-    else:
-        print(f"Ошибка при извлечении текста из {pdf_file_path}")
+        # Формируем путь для текстового файла с тем же именем, что и у PDF, но с расширением .txt
+        output_file_path = os.path.join(output_folder, f"{os.path.splitext(pdf_file)[0]}_extracted_text.txt")
 
-    # Создание базы данных
-    create_database('documents.db')
+        # Извлекаем текст из PDF
+        extract_text_from_pdf(pdf_file_path, output_file_path)
 
-    # Заполнение базы данных
-    populate_database('documents.db', file_path)
+        # Проверяем, что текст был извлечен
+        if os.path.exists(output_file_path):
+            print(f"Текст из файла {pdf_file_path} успешно извлечен в {output_file_path}")
+        else:
+            print(f"Ошибка при извлечении текста из {pdf_file_path}")
 
-    i += 1
+        # Заполняем базу данных, передавая уникальный file_number
+        populate_database('documents.db', output_file_path, i)  # i - уникальный номер для каждого файла
+
+
+# Укажите путь к папке с PDF-файлами
+pdf_folder = 'Parsing units'
+output_folder = 'parsing units text'
+
+# Создание базы данных
+create_database('documents.db')
+
+# Обработка всех PDF-файлов в папке
+process_pdfs_in_folder(pdf_folder, output_folder)
