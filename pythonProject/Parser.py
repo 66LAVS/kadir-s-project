@@ -70,6 +70,25 @@ def remove_literature_and_after(text):
     return text
 
 
+def remove_keywords_and_before(text):
+    """
+    Удаляет все, что идет до строки с ключевыми словами и сами ключевые слова.
+
+    Args:
+      text: Текст, из которого нужно удалить все до ключевых слов.
+
+    Returns:
+      Обрезанный текст, начиная с ключевых слов.
+    """
+    keywords = extract_keywords(text)  # Извлекаем ключевые слова
+    if keywords:
+        # Находим ключевые слова в тексте и обрезаем всё до них и сами ключевые слова
+        start_index = text.find(keywords)
+        if start_index != -1:
+            return text[start_index + len(keywords):].strip()  # Возвращаем текст после ключевых слов
+    return text
+
+
 def create_database(db_name):
     """
     Создает базу данных SQLite.
@@ -118,8 +137,9 @@ def populate_database(db_name, file_path):
         # Удаление лишних пробелов и символов в начале текста после УДК
         content = part[len(udk):].strip().lstrip('0123456789').strip()  # Остальной текст - это содержание
 
-        # Удаляем часть текста после "Литература"
-        content = remove_literature_and_after(content)
+        # Удаляем часть текста после "Литература" и до ключевых слов (если они есть)
+        content = remove_literature_and_after(content)  # Убираем литературу
+        content = remove_keywords_and_before(content)  # Убираем все до ключевых слов
 
         cursor.execute("INSERT INTO documents (file_number, udk, content, keywords) VALUES (?, ?, ?, ?)",
                        (file_number, udk, content, keywords))
