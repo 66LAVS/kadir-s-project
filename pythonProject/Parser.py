@@ -179,8 +179,8 @@ def process_pdfs_in_folder(pdf_folder, output_folder):
 
 
 # Укажите путь к папке с PDF-файлами
-pdf_folder = 'Parsing units'
-output_folder = 'parsing units text'
+pdf_folder = '/workspaces/kadir-s-project/pythonProject/Parsing units'
+output_folder = '/workspaces/kadir-s-project/pythonProject/Parsing units text'
 
 # Создание базы данных
 create_database('documents.db')
