@@ -1,7 +1,7 @@
 import pdfplumber
 import sqlite3
 import os
-import string
+
 
 def extract_text_from_pdf(pdf_file_path, output_file_path):
     """
@@ -34,22 +34,6 @@ def split_text_by_udk(file_path):
         text = file.read()
         parts = text.split("УДК ")  # Разделение по "УДК "
     return parts
-
-def del_eng(text):
-    text = text[2:]
-    # Массив символов от 'a' до 'z'
-    lowercase_letters = list(string.ascii_lowercase)
-
-    # Массив символов от 'A' до 'Z'
-    uppercase_letters = list(string.ascii_uppercase)
-
-    # Объединяем оба массива
-    all_letters = lowercase_letters + uppercase_letters
-    for i in range(0, len(text)):
-        if i not in all_letters:
-            return text[i:]
-    return text
-        
 
 
 def extract_keywords(text):
@@ -154,7 +138,6 @@ def populate_database(db_name, file_path, file_number):
         content = part[len(udk):].strip().lstrip('0123456789').strip()  # Остальной текст - это содержание
 
         # Удаляем часть текста после "Литература" и до ключевых слов (если они есть)
-        content = del_eng(content)
         content = remove_literature_and_after(content)  # Убираем литературу
         content = remove_keywords_and_before(content)  # Убираем все до ключевых слов
 

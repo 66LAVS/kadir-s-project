@@ -1,6 +1,11 @@
 import pdfplumber
 import sqlite3
 import os
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+import spacy
+import re
+
 
 
 def extract_text_from_pdf(pdf_file_path, output_file_path):
@@ -113,6 +118,35 @@ def create_database(db_name):
     conn.commit()
     conn.close()
 
+def Tokeize(conteyner_content, pre_trained_tokenizer):
+  """
+    Возвращает word_index для заданного текста, используя предобученный токенизатор.
+
+    Args:
+        text: Текст для обработки.
+        pre_trained_tokenizer: Предобученный токенизатор Tokenizer.
+
+    Returns:
+        word_index: Словарь word_index. Возвращает None, если текст пуст или токенизатор не задан.
+   
+     """
+  if not text or not pre_trained_tokenizer:
+        return None
+
+  content=""
+
+  conteyner_content.append([
+        token.lemma_.lower()
+        for token in nlp(results[i][0])
+        if not token.is_stop and token.text != '\n' and not token.is_punct and not re.fullmatch(r"[a-zA-Z]+", token.lemma_.lower())
+    ])
+  
+  tokenizer = Tokenizer(num_words=5) # Ограничиваем словарь до 10 слов
+  tokenizer.fit_on_texts(conteyner_content)
+  padded_sequences = pad_sequences(tokenizer.texts_to_sequences(conteyner_content), padding='post', maxlen=6) #добавляем паддинг
+
+  return tokenizer.padded_sequences
+    
 
 def populate_database(db_name, file_path, file_number):
     """
@@ -187,3 +221,7 @@ create_database('documents.db')
 
 # Обработка всех PDF-файлов в папке
 process_pdfs_in_folder(pdf_folder, output_folder)
+
+# Подключение языковой модели
+nlp = spacy.load("ru_core_news_sm") 
+    
